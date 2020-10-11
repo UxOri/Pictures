@@ -2,10 +2,10 @@ import pygame
 import numpy as np
 import pygame.draw as pgd
 
-pygame.init()
-screen = pygame.display.set_mode((800, 600))
+X, Y = (800, 600) #размеры окна
+FPS = 30
 
-COLOR = {
+COLOR = {                       #Словарь цветов
 'Orange'      : (255, 178,   0),
 'Human'       : (255, 218, 185),
 'Pink'        : (255,  20, 147),
@@ -17,71 +17,141 @@ COLOR = {
 'Maroon'      : (128,   0,   0),
 'White'       : (255, 255, 255)}
 
-R_of_head = 30 # радиус головы человечка
-human_height = 150 # высота туловища человечка
-human_y = 250 # координата (y) макушки человечка
-FPS = 30
-k = 160 # Константа, отвечающая за расстояние между человечками по оси X.
+HUMAN = {      #Словарь геометрических параметров человечка
+'Head'   :  30,
+'Height' : 150,
+'Hand'   :  70,
+'y_hand' :  10,
+'y_leg'  : 130,
+'foot'   :  25,
+'Dist'   : 160}
+
+pygame.init()
+screen = pygame.display.set_mode((X, Y))
 
 
-# Функция, рисуюшая равнобедренный трегольник с координатами  середины основания (x, y), высотой h, цветом color, основанием 2a и углом между основанием и горизонталью f.
 def draw_triangle(color, x, y, a, h, f):
+    '''
+    Рисует равнобедренный треугольник по заданным высоте и основанию, с заданием угла поворота
+    ----------------------------------------------------------
+    color - цвет
+    x - горизонтальная координата центра основания треугольника
+    y - вертикальная координата центра основания треугольника
+    a - основание
+    h - высота
+    f - угол поворота фигуры
+    '''
     pgd.polygon(screen, color, [(x - a*np.cos(f), y + a*np.sin(f)), (x + a*np.cos(f), y - a*np.sin(f)), (x + h*np.sin(f), y + h*np.cos(f))])    
 
 
-# Функция, рисующая букет цветов.
-def draw_flavour(x, y, a, h, f, colors = (COLOR['Orange'], COLOR['Red'], COLOR['Maroon'], COLOR['White'])):
+def draw_flavour(x, y, a, h, f, xline, yline, colors = (COLOR['Orange'], COLOR['Red'  ], COLOR['Maroon'], 
+                                                                         COLOR['White'], COLOR['Black' ])):
+    '''
+    Рисует шарик-букет с заданными параметрами образующего треугольника и
+    заданными координатами конца нитки с заданием угла поворота
+    ----------------------------------------------------------
+    x - горизонтальная координата центра основания образующего треугольника
+    y - вертикальная координата центра основания образующего треугольника
+    a - основание образующего треугольника
+    h - высота образующего треугольника
+    f - угол поворота фигуры
+    xline - горизонтальная координата конца нитки
+    yline - вертикальная координата конца нитки
+    colors - кортеж цветов.
+    '''
     draw_triangle(colors[0], x, y, a, h, f) 
-    pgd.circle(screen, colors[1], (int(round(x + a*np.cos(f)/2)), int(round(y - a*np.sin(f)/2))), a//2) 
-    pgd.circle(screen, colors[2], (int(round(x - a*np.cos(f)/2)), int(round(y - a*np.sin(f)/2))), a//2)
-    pgd.circle(screen, colors[3], (int(round(x - 0.6*a*np.sin(f))), int(round(y - 0.6*a*np.cos(f)))), a//2)
-
+    pgd.circle(screen, colors[1], (int(round(x +     a*np.cos(f)/2)), int(round(y -     a*np.sin(f)/2))), a//2) 
+    pgd.circle(screen, colors[2], (int(round(x -     a*np.cos(f)/2)), int(round(y -     a*np.sin(f)/2))), a//2)
+    pgd.circle(screen, colors[3], (int(round(x - 0.6*a*np.sin(f)  )), int(round(y - 0.6*a*np.cos(f)  ))), a//2)
     
-#Функция, рисующая шарик - сердечко.
-def draw_heart(x, y, a, h, f, color = COLOR['Red']):
-    draw_triangle(color, x, y, a, h, f)
-    pgd.circle(screen, color, (int(round(x + a*np.cos(f)/2)), int(round(y - a*np.sin(f)/2))), a//2) 
-    pgd.circle(screen, color, (int(round(x - a*np.cos(f)/2)), int(round(y - a*np.sin(f)/2))), a//2)
-
-screen.fill(COLOR['SkyBlue'])
-pgd.rect(screen, COLOR['ForestGreen'], (0, 300, 800, 300))
-draw_flavour(400, 100, 40, 80, np.pi/20 )
-draw_flavour(750, 320, 20, 40, -np.pi/15)
-draw_heart(50, 200, 30, 60, 0)
-
-pgd.aalines(screen, COLOR['Black'], False, [[400 + 80*np.sin(np.pi/20), 100 + 80*np.cos(np.pi/20)],
-                                   [k*3 - (0.5)*11*R_of_head/2,human_y + 3*R_of_head]])
-pgd.aalines(screen, COLOR['Black'], False, [[50 + 60*np.sin(0), 200 + 60*np.cos(0)],
-                                   [k*1 - 3*R_of_head*0.9, human_y + 5*R_of_head*0.9]])
-pgd.aalines(screen, COLOR['Black'], False, [[750 + 40*np.sin(-np.pi/15), 320 + 40*np.cos(-np.pi/15)],
-                                   [k*4 + 3*R_of_head*0.9, human_y + 5*R_of_head*0.9]])
-
-# Рисуем девочек.
-for i in range(2,4):
-    pgd.aalines(screen, COLOR['Black'], False, [[k*i + (i - 2.5)*2*R_of_head/2, human_y + 2.5*R_of_head],
-                                   [k*i + (i - 2.5)*6*R_of_head*0.9, human_y + 5*R_of_head*0.9]])
-    pgd.aalines(screen, COLOR['Black'], False, [[k*i - (i - 2.5)*2*R_of_head/2, human_y + 2.5*R_of_head],
-                                   [k*i - (i - 2.5)*10*R_of_head/4, human_y + 4*R_of_head],
-                                   [k*i - (i - 2.5)*11*R_of_head/2, human_y + 3*R_of_head]]) 
-    for p in range (-1, 3, 2):
-        pgd.aalines(screen, COLOR['Black'], False, [[k*i + p* R_of_head/2, human_y + 3.3*R_of_head],
-                                       [k*i + p*5*R_of_head/8, human_y + 7*R_of_head/2 + human_height],
-                                       [k*i + p*R_of_head, human_y + 7*R_of_head/2 + human_height]])
-    draw_triangle(COLOR['Pink'], k*i, human_y + 3*R_of_head/2 + human_height, 2*R_of_head, human_height, np.pi/1)
-    pgd.circle(screen, COLOR['Human'], (k*i, human_y + R_of_head), R_of_head)
+    pgd.aalines(screen, colors[4], False, [[x + h*np.sin(f), y + h*np.cos(f)],
+                                           [xline          , yline          ]])
     
-# Рисуем мальчиков. 
-for i in range(1, 5, 3):
-    for p in range (-1, 3, 2):
-        pgd.aalines(screen, COLOR['Black'], False, [[k*i + p*R_of_head/2, human_y + 2.5*R_of_head],
-                                        [k*i + p*3*R_of_head*0.9, human_y + 5*R_of_head*0.9]])
-        pgd.aalines(screen, COLOR['Black'], False, [[k*i + p* R_of_head/2, human_y + 3.3*R_of_head],
-                                       [k*i + p*5*R_of_head/8,  human_y + 7*R_of_head/2 +human_height],
-                                       [k*i + p*R_of_head,  human_y + 7*R_of_head/2 + human_height]])
-    pgd.ellipse(screen, COLOR['Blue'], (k*i - R_of_head, human_y + 3*R_of_head/2, 2*R_of_head, human_height)) 
-    pgd.circle(screen, COLOR['Human'], (k*i, human_y + R_of_head), R_of_head)
-       
     
+def draw_heart(x, y, a, h, f, xline, yline, colors = [COLOR['Red'], COLOR['Black']]):
+    '''
+    Рисует шарик-сердечко с заданными параметрами образующего треугольника и
+    заданными координатами конца нитки с заданием угла поворота
+    ----------------------------------------------------------
+    x - горизонтальная координата центра основания образующего треугольника
+    y - вертикальная координата центра основания образующего треугольника
+    a - основание образующего треугольника
+    h - высота образующего треугольника
+    f - угол поворота фигуры
+    xline - горизонтальная координата конца нитки
+    yline - вертикальная координата конца нитки
+    colors - кортеж цветов.
+    '''
+    draw_triangle(colors[0], x, y, a, h, f)
+    pgd.circle(screen, colors[0], (int(round(x + a*np.cos(f)/2)), int(round(y - a*np.sin(f)/2))), a//2) 
+    pgd.circle(screen, colors[0], (int(round(x - a*np.cos(f)/2)), int(round(y - a*np.sin(f)/2))), a//2)
+    
+    pgd.aalines(screen, colors[1], False, [[x + h*np.sin(f), y + h*np.cos(f)],
+                                           [xline          , yline          ]])
+
+def background(colors = (COLOR['SkyBlue'], COLOR['ForestGreen']), y_sep = 300):
+    '''
+    Рисует фон с заданными цветами неба и земли
+    ----------------------------------------------------------
+    colors - кортеж цветов
+    '''
+    screen.fill(colors[0])
+    pgd.rect(screen, colors[1], (0, y_sep, X, y_sep))
+    
+    
+def boys(y_head, colors = (COLOR['Black'], COLOR['Human'], COLOR['Blue']), place = [1, 4]):
+    '''
+    Рисует мальчиков на заданных местах с фиксированным положением рук
+    ----------------------------------------------------------
+    y_head - координата макушки мальчика
+    colors - кортеж цветов
+    place - лист с номером положений мальчиков
+    '''
+    for i in place:
+        for p in [-1, 1]:
+            pgd.aalines(screen, colors[0], False, [[HUMAN['Dist']*i + p  *HUMAN['Head']/2  , y_head + 2.5*HUMAN['Head']    ],
+                                                   [HUMAN['Dist']*i + p*3*HUMAN['Head']*0.9, y_head + 5  *HUMAN['Head']*0.9]])
+    
+            pgd.aalines(screen, colors[0], False, [[HUMAN['Dist']*i + p  *HUMAN['Head']/2, y_head + 3.3*HUMAN['Head']                    ],
+                                                   [HUMAN['Dist']*i + p*5*HUMAN['Head']/8, y_head + 7  *HUMAN['Head']/2 + HUMAN['Height']],
+                                                   [HUMAN['Dist']*i + p  *HUMAN['Head']  , y_head + 7  *HUMAN['Head']/2 + HUMAN['Height']]])
+    
+        pgd.ellipse(screen, colors[2], (HUMAN['Dist']*i - HUMAN['Head'], y_head + 3*HUMAN['Head']/2, 2*HUMAN['Head'], HUMAN['Height'])) 
+        pgd.circle (screen, colors[1], (HUMAN['Dist']*i                , y_head +   HUMAN['Head']) , HUMAN['Head'])
+    
+    
+def girls(y_head, colors = (COLOR['Black'], COLOR['Human'], COLOR['Pink']), place = [2, 3]):
+    '''
+    Рисует девочек на заданных местах с фиксированным положением рук
+    ----------------------------------------------------------
+    y_head - координата макушки девочки 
+    colors - кортеж цветов
+    place - лист с номером положений девочек
+    '''
+    for i in place:
+        pgd.aalines(screen, colors[0], False, [[HUMAN['Dist']*i + (i - 2.5)*2 *HUMAN['Head']/2  , y_head + 2.5*HUMAN['Head']    ],
+                                               [HUMAN['Dist']*i + (i - 2.5)*6 *HUMAN['Head']*0.9, y_head + 5  *HUMAN['Head']*0.9]])
+    
+        pgd.aalines(screen, colors[0], False, [[HUMAN['Dist']*i - (i - 2.5)*2 *HUMAN['Head']/2  , y_head + 2.5*HUMAN['Head']],
+                                               [HUMAN['Dist']*i - (i - 2.5)*10*HUMAN['Head']/4  , y_head + 4  *HUMAN['Head']],
+                                               [HUMAN['Dist']*i - (i - 2.5)*11*HUMAN['Head']/2  , y_head + 3  *HUMAN['Head']]]) 
+        for p in [-1, 1]:
+            pgd.aalines(screen, colors[0], False, [[HUMAN['Dist']*i + p  *HUMAN['Head']/2, y_head + 3.3*HUMAN['Head']                    ],
+                                                   [HUMAN['Dist']*i + p*5*HUMAN['Head']/8, y_head + 7  *HUMAN['Head']/2 + HUMAN['Height']],
+                                                   [HUMAN['Dist']*i + p  *HUMAN['Head']  , y_head + 7  *HUMAN['Head']/2 + HUMAN['Height']]])
+    
+        draw_triangle(        colors[2],  HUMAN['Dist']*i, y_head + 3*HUMAN['Head']/2 + HUMAN['Height'], 2*HUMAN['Head'], HUMAN['Height'], np.pi/1)
+        pgd.circle   (screen, colors[1], (HUMAN['Dist']*i, y_head +   HUMAN['Head'])                   , HUMAN['Head'])
+ 
+    
+    
+background()
+draw_flavour(400, 100, 40, 80, np.pi/20, 400, 340)
+draw_flavour(750, 320, 20, 40, -np.pi/15, 720, 385)
+draw_heart(50, 200, 30, 60, 0, 80, 385)
+boys(250)
+girls(250)      
+
 pygame.display.update()
 clock = pygame.time.Clock()
 finished = False
